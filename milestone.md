@@ -1,24 +1,27 @@
 ---
 layout: page
 title: "milestone"
-description: "知之真切笃实处即是行，行之明觉精察处即是知 "
+description: "Life is short，You Need Spark "
 header-img: "img/zhihu.jpg"
 ---
 
 
 <center>
-    <p><img src="http://7xlfkx.com1.z0.glb.clouddn.com/white2.jpg" align="center"></p>
+    <p><img src="http://img.blog.csdn.net/20160421184457540" align="center" high="30" width="200"></p>
 </center>
 
 
-###代表作：
+### DT_Spark代表作：
+1、《大话企业级Android应用开发》
 
+2、《基于Android平台的商业软件——手机守护神开发全程实战》
 
-- [《世界并非如你所见——用可供性来发现更大的世界》](http://www.jianshu.com/p/6f1404e0240d)
+3、《Android 4.0网络编程详解》
 
-- [《如何正确地练习写作》](http://www.jianshu.com/p/2621444b619d)
+4、《细说Android NDK编程》
 
-- [《24款最值得推荐的中文字体》](http://cnfeat.com/blog/2015/05/22/a-24-chinese-fonts/)
+5、《Android开发三剑客——UML、模式与测试》
+
 
 
 

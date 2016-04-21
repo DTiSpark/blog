@@ -35,7 +35,7 @@
 ![这里写图片描述](http://img.blog.csdn.net/20160421181632143)
 
 ## 第四步：我们就像对RDD编程一样，基于DStream进行编程，原因是DStream是RDD产生的模板，在Spark Streaming发生计算前，其实质是把每个Batch的DStream的操作翻译成为了RDD操作。
-##1、flatMap操作：
+## 1、flatMap操作：
 ![这里写图片描述](http://img.blog.csdn.net/20160421181703675)
 
 ## 2、 mapToPair操作：

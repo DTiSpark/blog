@@ -11,7 +11,7 @@ header-img: "img/zhihu.jpg"
 </center>
 
 
-### DT_Spark代表作：
+### DT_Spark的代表作：
 1、《大话企业级Android应用开发》
 
 2、《基于Android平台的商业软件——手机守护神开发全程实战》

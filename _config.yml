@@ -1,16 +1,16 @@
 # Site settings
-title: 读立写生
+title: DT_Spark
 header-img: "img/green.jpg"
 tagline: "cn"  
-description: "陈素封|读而立·写而生"  
+description: "Spark|You need Spark"  
 baseurl: ""
-url: "http://cnfeat"  
+url: "http://dtispark"  
 
 # About/contact
 owner: 
-  name: " CnFeat"
-  email: CnFeat@gmail.com
-  bio: "写就是写的报酬"
+  name: " DT_Spark"
+  email: DT_Spark@126.com
+  bio: "源码阅读就是最好的学习"
 
 # Data
 gavatar: http://dreamofbook.qiniudn.com/Az..png

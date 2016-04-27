@@ -1,0 +1,392 @@
+<p>本课是由<strong>DT大数据梦工厂</strong>推出的IMF传奇行动<strong>Spark</strong>课程的第89讲，本课分两部分讲解： <br>
+（1）Kafka的概念、架构和用例场景； <br>
+（2）Kafka的安装和实战。 <br>
+由于时间关系，本课程只讲到如何用官网的例子验证Kafka的安装是否成功。后续课程会接着讲解如何集成Spark Streaming和Kafka。</p>
+
+
+
+<h2 id="一kafka的概念架构和用例场景">一、Kafka的概念、架构和用例场景</h2>
+
+<p><strong>1.Kafka的概念</strong></p>
+
+<p>Apache Kafka是分布式发布-订阅消息系统。它最初由LinkedIn公司开发，之后成为Apache项目的一部分。Kafka是一种快速、可扩展的、设计内在就是分布式的，分区的和可复制的提交日志服务。</p>
+
+<p><strong>什么是消息组件？</strong> <br>
+以帅哥和美女聊天为例，帅哥如何和美女交流呢？这中间通常想到的是微信、QQ、电话、邮件等通信媒介，这些通信媒介就是消息组件，帅哥把聊天信息发送给消息组件、消息组件将消息推送给美女，这就是常说的生产者、消费者模型。而且在发送信息时可以将内容进行分类，即所谓的Topic主题。Kafka就是这样的通信组件，将不同对象组件粘合起来的纽带，且是解耦合方式传递数据。</p>
+
+<p><strong>Apache Kafka与传统消息系统相比，有以下不同的特点：</strong> <br>
+•   分布式系统，易于向外扩展； <br>
+•   在线低延迟，同时为发布和订阅提供高吞吐量； <br>
+•   将消息存储到磁盘，因此可以处理1天甚至1周前内容。</p>
+
+<p><strong>2.Kafka的架构</strong></p>
+
+<p><img src="http://img.blog.csdn.net/20160426180937393" alt="这里写图片描述" title=""></p>
+
+<p>Kafka既然具备消息系统的基本功能，那么就必然会有组成消息系统的组件：Topic，Producer和Consumer。Kafka还有其特殊的Kafka Cluster组件。</p>
+
+<ul>
+<li><strong>Topic(主题)</strong>：代表一种数据的类别或类型，工作、娱乐、生活有不同的Topic，生产者需要说明把说明数据分别放在那些Topic中，里面就是一个个小对象，并将数据数据推到Kafka，消费者获取数据是pull的过程。一组相同类型的消息数据流。这些消息在Kafka会被分区存放，并且有多个副本，以防数据丢失。每个分区的消息是顺序写入的，并且不可改写。</li>
+</ul>
+
+<p><img src="http://img.blog.csdn.net/20160426181101379" alt="这里写图片描述" title=""></p>
+
+<ul>
+<li><p><strong>Producer（生产者）</strong>：把数据推到Kafka系统的任何对象。</p></li>
+<li><p><strong>Kafka Cluster（Kafka集群）</strong>：把推到Kafka系统的消息保存起来的一组服务器，也叫Broker。因为Kafka集群用到了Zookeeper作为底层支持框架，所以由一个选出的服务器作为Leader来处理所有消息的读和写的请求，其他服务器作为Follower接受Leader的广播同步备份数据，以备灾难恢复时用。</p></li>
+<li><p><strong>Consumer（消费者）</strong>：从Kafka系统订阅消息的任何对象。 <br>
+消费者可以有多个，并且某些消费者还可以组成Consumer Group。多个Consumer Group之间组成消息广播的关系，所以各个Group可以拉相同的消息数据。在Consumer Group内部，各消费者之间对Consumer Group拉出来的消息数据是队列先进先出的关系，某个消息数据只能给该Group的一个消费者使用。</p></li>
+</ul>
+
+<p><img src="http://img.blog.csdn.net/20160426181210291" alt="这里写图片描述" title=""></p>
+
+<p>数据传输基于kernel（内核）级别的（传输速度接近0拷贝-ZeroCopy）、没有用户空间的参与。Linux本身是软件，软件启动时第一个启动进程叫init，在init进程启动后会进入用户空间；例如：在分布式系统中，机器A上的应用程序需要读取机器B上的Java服务数据，由于Java程序对应的JVM是用户空间级别而且数据在磁盘上，A上应用程序读取数据时会首先进入机器B上的内核空间再进入机器B的用户空间，读取用户空间的数据后，数据再经过B机器上的内核空间分发到网络中，机器A网卡接收到传输过来的数据后再将数据写入A机器的内核空间，从而最终将数据传输给A的用户空间进行处理。如下图：</p>
+
+<p><img src="http://img.blog.csdn.net/20160426181244460" alt="这里写图片描述" title=""></p>
+
+<p>外部系统从Java程序中读取数据，传输给内核空间并依赖网卡将数据写入到网络中，从而把数据传输出去。其实Java本身是内核的一层外衣，Java Socket编程，操作的各种数据都是在JVM的用户空间中进行的。而Kafka操作数据是放在内核空间的，通常内核空间处理数据的速度比用户空间快上万倍，所以通过kafka可以实现高速读、写数据。</p>
+
+<p><strong>3、Kafka的用例场景</strong></p>
+
+<p>类似微信，手机和邮箱等等这样大家熟悉的消息组件，Kafka也可以： <br>
+•   支持文字/图片 <br>
+•   可以存储内容 <br>
+•   分门别类 <br>
+从内容消费的角度，Kafka把邮箱中的邮件看成是Topic。</p>
+
+
+
+<h2 id="二kafka的安装和实战">二、Kafka的安装和实战</h2>
+
+<p>下载地址为：<a href="http://kafka.apache.org/documentation.html#quickstart">http://kafka.apache.org/documentation.html#quickstart</a> <br>
+<strong>1、安装和配置Zookeeper</strong> <br>
+Kafka集群模式需要提前安装好Zookeeper。 <br>
+<strong>提示</strong>：Kafka单例模式不需要安装额外的Zookeeper，可以使用内置的Zookeeper。Kafka集群模式需要至少3台服务器。本课实战用到的服务器Hostname：master，slave1，slave2。本课中用到的Zookeeper版本是Zookeeper-3.4.6。</p>
+
+<p>1)  下载Zookeeper</p>
+
+<p>进入<a href="http://www.apache.org/dyn/closer.cgi/zookeeper/">http://www.apache.org/dyn/closer.cgi/zookeeper/</a>，你可以选择其他镜像网址去下载，用官网推荐的镜像：<a href="http://mirror.bit.edu.cn/apache/zookeeper/">http://mirror.bit.edu.cn/apache/zookeeper/</a>。提示：可以直接下载群里的Zookeeper安装文件。</p>
+
+<p><img src="http://img.blog.csdn.net/20160426181714981" alt="这里写图片描述" title=""></p>
+
+<p><img src="http://img.blog.csdn.net/20160426181726795" alt="这里写图片描述" title=""></p>
+
+<p>下载zookeeper-3.4.6.tar.gz：</p>
+
+<p><img src="http://img.blog.csdn.net/20160426181747293" alt="这里写图片描述" title=""></p>
+
+<p>2)  安装Zookeeper <br>
+<strong>提示</strong>：下面的步骤发生在master服务器。 <br>
+以ubuntu14.04举例，把下载好的文件放到/root目录，用下面的命令解压：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs avrasm">cd /root
+tar -zxvf zookeeper-<span class="hljs-number">3.4</span><span class="hljs-number">.6</span><span class="hljs-preprocessor">.tar</span><span class="hljs-preprocessor">.gz</span></code></pre>
+
+<p>解压后在/root目录会多出一个zookeeper-3.4.6的新目录，用下面的命令把它剪切到指定目录即安装好Zookeeper了：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash"><span class="hljs-built_in">cd</span> /root
+mv zookeeper-<span class="hljs-number">3.4</span>.<span class="hljs-number">6</span> /usr/local/spark</code></pre>
+
+<p>之后在/usr/local/spark目录会多出一个zookeeper-3.4.6的新目录。下面我们讲如何配置安装好的Zookeeper。</p>
+
+<p>3)  配置Zookeeper <br>
+提示：下面的步骤发生在master服务器。 <br>
+a.  配置.bashrc <br>
+打开文件：vi /root/.bashrc <br>
+在PATH配置行前添加：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs ruby">export <span class="hljs-constant">ZOOKEEPER_HOME</span>=<span class="hljs-regexp">/usr/local</span><span class="hljs-regexp">/spark/zookeeper</span>-<span class="hljs-number">3.4</span>.<span class="hljs-number">6</span></code></pre>
+
+<p>最后修改PATH：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash"><span class="hljs-keyword">export</span> PATH=<span class="hljs-variable">${JAVA_HOME}</span>/bin:<span class="hljs-variable">${ZOOKEEPER_HOME}</span>/bin:<span class="hljs-variable">${HADOOP_HOME}</span>/bin:<span class="hljs-variable">${HADOOP_HOME}</span>/sbin:<span class="hljs-variable">${SCALA_HOME}</span>/bin:<span class="hljs-variable">${SPARK_HOME}</span>/bin:<span class="hljs-variable">${SPARK_HOME}</span>/sbin:<span class="hljs-variable">${HIVE_HOME}</span>/bin:<span class="hljs-variable">${KAFKA_HOME}</span>/bin:<span class="hljs-variable">$PATH</span></code></pre>
+
+<p>使配置的环境变量立即生效：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash"><span class="hljs-built_in">source</span> /root/.bashrc</code></pre>
+
+<p>b. 创建data目录</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash"><span class="hljs-built_in">cd</span> <span class="hljs-variable">$ZOOKEEPER_HOME</span>
+mkdir data</code></pre>
+
+<p>c.  创建并打开zoo.cfg文件</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs avrasm">cd $ZOOKEEPER_HOME/conf
+<span class="hljs-keyword">cp</span> zoo_sample<span class="hljs-preprocessor">.cfg</span> zoo<span class="hljs-preprocessor">.cfg</span>
+vi zoo<span class="hljs-preprocessor">.cfg</span></code></pre>
+
+<p>d.  配置zoo.cfg</p>
+
+<p>配置Zookeeper的日志和服务器身份证号等数据存放的目录。 千万不要用默认的/tmp/zookeeper目录，因为/tmp目录的数据容易被意外删除。 dataDir=../data Zookeeper与客户端连接的端口 clientPort=2181 #在文件最后新增3行配置每个服务器的2个重要端口：Leader端口和选举端口 server.A=B：C：D：其中 A 是一个数字，表示这个是第几号服务器； B 是这个服务器的hostname或ip地址；  C 表示的是这个服务器与集群中的 Leader 服务器交换信息的端口； D 表示的是万一集群中的 Leader 服务器挂了，需要一个端口来重新进行选举， #选出一个新的 Leader，而这个端口就是用来执行选举时服务器相互通信的端口。  如果是伪集群的配置方式，由于 B 都是一样，所以不同的 Zookeeper 实例通信  端口号不能一样，所以要给它们分配不同的端口号。</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs profile"><span class="hljs-filename">server.1=master</span>:<span class="hljs-number">2888</span>:<span class="hljs-number">3888</span>
+<span class="hljs-filename">server.2=slave1</span>:<span class="hljs-number">2888</span>:<span class="hljs-number">3888</span>
+<span class="hljs-filename">server.3=slave2</span>:<span class="hljs-number">2888</span>:<span class="hljs-number">3888</span></code></pre>
+
+<p>e.  创建并打开myid文件</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash"><span class="hljs-built_in">cd</span> <span class="hljs-variable">$ZOOKEEPER_HOME</span>/data
+touch myid
+vi myid</code></pre>
+
+<p>f.  配置myid <br>
+按照zoo.cfg的配置，myid的内容就是1。</p>
+
+<p>4)  同步master的安装和配置到slave1和slave2，在master服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs ruby">cd /root
+scp ./.bashrc root<span class="hljs-variable">@slave1</span><span class="hljs-symbol">:/root</span>
+scp ./.bashrc root<span class="hljs-variable">@slave2</span><span class="hljs-symbol">:/root</span>
+cd /usr/local/spark
+scp -r ./zookeeper-<span class="hljs-number">3.4</span>.<span class="hljs-number">6</span> root<span class="hljs-variable">@slave1</span><span class="hljs-symbol">:/usr/local/spark</span>
+scp -r ./zookeeper-<span class="hljs-number">3.4</span>.<span class="hljs-number">6</span> root<span class="hljs-variable">@slave2</span><span class="hljs-symbol">:/usr/local/spark</span></code></pre>
+
+<p>在slave1服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs haskell"><span class="hljs-title">vi</span> $<span class="hljs-type">ZOOKEEPER_HOME</span>/<span class="hljs-typedef"><span class="hljs-keyword">data</span>/myid</span></code></pre>
+
+<p>按照zoo.cfg的配置，myid的内容就是2。 <br>
+在slave2服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs haskell"><span class="hljs-title">vi</span> $<span class="hljs-type">ZOOKEEPER_HOME</span>/<span class="hljs-typedef"><span class="hljs-keyword">data</span>/myid</span></code></pre>
+
+<p>按照zoo.cfg的配置，myid的内容就是3。</p>
+
+<p>5)  启动Zookeeper服务 <br>
+在master服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs sql">zkServer.sh <span class="hljs-operator"><span class="hljs-keyword">start</span></span></code></pre>
+
+<p>在slave1服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs avrasm">source /root/<span class="hljs-preprocessor">.bashrc</span>
+zkServer<span class="hljs-preprocessor">.sh</span> start</code></pre>
+
+<p>在slave1服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs avrasm">source /root/<span class="hljs-preprocessor">.bashrc</span>
+zkServer<span class="hljs-preprocessor">.sh</span> start</code></pre>
+
+<p>6)  验证Zookeeper是否安装和启动成功 <br>
+在master服务器上运行命令：jps和zkServer.sh status</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs ruby">root<span class="hljs-variable">@master</span><span class="hljs-symbol">:/usr/local/spark/zookeeper-</span><span class="hljs-number">3.4</span>.<span class="hljs-number">6</span>/bin<span class="hljs-comment"># jps</span>
+<span class="hljs-number">3844</span> <span class="hljs-constant">QuorumPeerMain</span>
+<span class="hljs-number">4790</span> <span class="hljs-constant">Jps</span>
+zkServer.sh status
+root<span class="hljs-variable">@master</span><span class="hljs-symbol">:/usr/local/spark/zookeeper-</span><span class="hljs-number">3.4</span>.<span class="hljs-number">6</span>/bin<span class="hljs-comment"># zkServer.sh status</span>
+<span class="hljs-constant">JMX</span> enabled by default
+<span class="hljs-constant">Using</span> <span class="hljs-symbol">config:</span> /usr/local/spark/zookeeper-<span class="hljs-number">3.4</span>.<span class="hljs-number">6</span>/bin/../conf/zoo.cfg
+<span class="hljs-constant">Mode</span><span class="hljs-symbol">:</span> follower</code></pre>
+
+<p>在slave1服务器上运行命令：jps和zkServer.sh status</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs ruby">source /root/.bashrc
+root<span class="hljs-variable">@slave1</span><span class="hljs-symbol">:/usr/local/spark/zookeeper-</span><span class="hljs-number">3.4</span>.<span class="hljs-number">6</span>/bin<span class="hljs-comment"># jps</span>
+<span class="hljs-number">3462</span> <span class="hljs-constant">QuorumPeerMain</span>
+<span class="hljs-number">4313</span> <span class="hljs-constant">Jps</span>
+root<span class="hljs-variable">@slave1</span><span class="hljs-symbol">:/usr/local/spark/zookeeper-</span><span class="hljs-number">3.4</span>.<span class="hljs-number">6</span>/bin<span class="hljs-comment"># zkServer.sh status</span>
+<span class="hljs-constant">JMX</span> enabled by default
+<span class="hljs-constant">Using</span> <span class="hljs-symbol">config:</span> /usr/local/spark/zookeeper-<span class="hljs-number">3.4</span>.<span class="hljs-number">6</span>/bin/../conf/zoo.cfg
+<span class="hljs-constant">Mode</span><span class="hljs-symbol">:</span> follower</code></pre>
+
+<p>在slave2服务器上运行命令：jps和zkServer.sh status</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs ruby">root<span class="hljs-variable">@slave2</span><span class="hljs-symbol">:/usr/local/spark/zookeeper-</span><span class="hljs-number">3.4</span>.<span class="hljs-number">6</span>/bin<span class="hljs-comment"># jps</span>
+<span class="hljs-number">4073</span> <span class="hljs-constant">Jps</span>
+<span class="hljs-number">3277</span> <span class="hljs-constant">QuorumPeerMain</span>
+root<span class="hljs-variable">@slave2</span><span class="hljs-symbol">:/usr/local/spark/zookeeper-</span><span class="hljs-number">3.4</span>.<span class="hljs-number">6</span>/bin<span class="hljs-comment"># zkServer.sh status</span>
+<span class="hljs-constant">JMX</span> enabled by default
+<span class="hljs-constant">Using</span> <span class="hljs-symbol">config:</span> /usr/local/spark/zookeeper-<span class="hljs-number">3.4</span>.<span class="hljs-number">6</span>/bin/../conf/zoo.cfg
+<span class="hljs-constant">Mode</span><span class="hljs-symbol">:</span> leader</code></pre>
+
+<p>至此，代表Zookeeper已经安装和配置成功。</p>
+
+<p><strong>2、安装和配置Kafka</strong></p>
+
+<p>本课中用到的Kafka版本是Kafka-2.10-0.9.0.1。 <br>
+1)  下载Kafka <br>
+进入<a href="http://kafka.apache.org/downloads.html">http://kafka.apache.org/downloads.html</a>，左键单击kafka_2.10-0.9.0.1.tgz。提示：可以直接下载群里的Kafka安装文件。</p>
+
+<p><img src="http://img.blog.csdn.net/20160426182359352" alt="这里写图片描述" title=""></p>
+
+<p>下载kafka_2.10-0.9.0.1.tgz</p>
+
+<p><img src="http://img.blog.csdn.net/20160426182418843" alt="这里写图片描述" title=""></p>
+
+<p>2)  安装Kafka <br>
+<strong>提示</strong>：下面的步骤发生在master服务器。 <br>
+以ubuntu14.04举例，把下载好的文件放到/root目录，用下面的命令解压：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash"><span class="hljs-built_in">cd</span> /root
+tar -zxvf kafka_2.<span class="hljs-number">10</span>-<span class="hljs-number">0.9</span>.<span class="hljs-number">0.1</span>.tgz</code></pre>
+
+<p>解压后在/root目录会多出一个kafka_2.10-0.9.0.1的新目录，用下面的命令把它剪切到指定目录即安装好Kafka了：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash"><span class="hljs-built_in">cd</span> /root
+mv kafka_2.<span class="hljs-number">10</span>-<span class="hljs-number">0.9</span>.<span class="hljs-number">0.1</span> /usr/local</code></pre>
+
+<p>之后在/usr/local目录会多出一个kafka_2.10-0.9.0.1的新目录。下面我们讲如何配置安装好的Kafka。</p>
+
+<p>3)  配置Kafka <br>
+<strong>提示</strong>：下面的步骤发生在master服务器。 <br>
+a.  配置.bashrc <br>
+打开文件：vi /root/.bashrc <br>
+在PATH配置行前添加：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs autohotkey">export KAFK<span class="hljs-built_in">A_HOME</span>=/usr/local/kafk<span class="hljs-built_in">a_2</span>.<span class="hljs-number">10</span>-<span class="hljs-number">0.9</span>.<span class="hljs-number">0.1</span></code></pre>
+
+<p>最后修改PATH： <br>
+export PATH=<span class="MathJax_Preview"></span><span class="MathJax" id="MathJax-Element-1-Frame" role="textbox" aria-readonly="true"><nobr><span class="math" id="MathJax-Span-1" style="width: 10.829em; display: inline-block;"><span style="display: inline-block; position: relative; width: 8.643em; height: 0px; font-size: 125%;"><span style="position: absolute; clip: rect(1.816em 1000em 3.149em -0.424em); top: -2.717em; left: 0.003em;"><span class="mrow" id="MathJax-Span-2"><span class="texatom" id="MathJax-Span-3"><span class="mrow" id="MathJax-Span-4"><span class="mi" id="MathJax-Span-5" style="font-family: MathJax_Math-italic;">J<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span class="mi" id="MathJax-Span-6" style="font-family: MathJax_Math-italic;">A</span><span class="mi" id="MathJax-Span-7" style="font-family: MathJax_Math-italic;">V<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.163em;"></span></span><span class="msubsup" id="MathJax-Span-8"><span style="display: inline-block; position: relative; width: 1.496em; height: 0px;"><span style="position: absolute; clip: rect(1.709em 1000em 2.723em -0.424em); top: -2.557em; left: 0.003em;"><span class="mi" id="MathJax-Span-9" style="font-family: MathJax_Math-italic;">A</span><span style="display: inline-block; width: 0px; height: 2.563em;"></span></span><span style="position: absolute; top: -2.291em; left: 0.803em;"><span class="mi" id="MathJax-Span-10" style="font-size: 70.7%; font-family: MathJax_Math-italic;">H<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span style="display: inline-block; width: 0px; height: 2.456em;"></span></span></span></span><span class="mi" id="MathJax-Span-11" style="font-family: MathJax_Math-italic;">O</span><span class="mi" id="MathJax-Span-12" style="font-family: MathJax_Math-italic;">M<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.109em;"></span></span><span class="mi" id="MathJax-Span-13" style="font-family: MathJax_Math-italic;">E<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.003em;"></span></span></span></span><span class="texatom" id="MathJax-Span-14"><span class="mrow" id="MathJax-Span-15"><span class="mo" id="MathJax-Span-16" style="font-family: MathJax_Main;">/</span></span></span><span class="mi" id="MathJax-Span-17" style="font-family: MathJax_Math-italic;">b</span><span class="mi" id="MathJax-Span-18" style="font-family: MathJax_Math-italic;">i</span><span class="mi" id="MathJax-Span-19" style="font-family: MathJax_Math-italic;">n</span><span class="mo" id="MathJax-Span-20" style="font-family: MathJax_Main; padding-left: 0.269em;">:</span></span><span style="display: inline-block; width: 0px; height: 2.723em;"></span></span></span><span style="border-left-width: 0.003em; border-left-style: solid; display: inline-block; overflow: hidden; width: 0px; height: 1.403em; vertical-align: -0.397em;"></span></span></nobr></span><script type="math/tex" id="MathJax-Element-1">{JAVA_HOME}/bin:</script>{ZOOKEEPER_HOME}/bin:<span class="MathJax_Preview"></span><span class="MathJax" id="MathJax-Element-2-Frame" role="textbox" aria-readonly="true"><nobr><span class="math" id="MathJax-Span-21" style="width: 13.016em; display: inline-block;"><span style="display: inline-block; position: relative; width: 10.403em; height: 0px; font-size: 125%;"><span style="position: absolute; clip: rect(1.816em 1000em 3.149em -0.424em); top: -2.717em; left: 0.003em;"><span class="mrow" id="MathJax-Span-22"><span class="texatom" id="MathJax-Span-23"><span class="mrow" id="MathJax-Span-24"><span class="mi" id="MathJax-Span-25" style="font-family: MathJax_Math-italic;">H<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span class="mi" id="MathJax-Span-26" style="font-family: MathJax_Math-italic;">A</span><span class="mi" id="MathJax-Span-27" style="font-family: MathJax_Math-italic;">D</span><span class="mi" id="MathJax-Span-28" style="font-family: MathJax_Math-italic;">O</span><span class="mi" id="MathJax-Span-29" style="font-family: MathJax_Math-italic;">O</span><span class="msubsup" id="MathJax-Span-30"><span style="display: inline-block; position: relative; width: 1.389em; height: 0px;"><span style="position: absolute; clip: rect(1.709em 1000em 2.723em -0.424em); top: -2.557em; left: 0.003em;"><span class="mi" id="MathJax-Span-31" style="font-family: MathJax_Math-italic;">P<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.109em;"></span></span><span style="display: inline-block; width: 0px; height: 2.563em;"></span></span><span style="position: absolute; top: -2.291em; left: 0.696em;"><span class="mi" id="MathJax-Span-32" style="font-size: 70.7%; font-family: MathJax_Math-italic;">H<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span style="display: inline-block; width: 0px; height: 2.456em;"></span></span></span></span><span class="mi" id="MathJax-Span-33" style="font-family: MathJax_Math-italic;">O</span><span class="mi" id="MathJax-Span-34" style="font-family: MathJax_Math-italic;">M<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.109em;"></span></span><span class="mi" id="MathJax-Span-35" style="font-family: MathJax_Math-italic;">E<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.003em;"></span></span></span></span><span class="texatom" id="MathJax-Span-36"><span class="mrow" id="MathJax-Span-37"><span class="mo" id="MathJax-Span-38" style="font-family: MathJax_Main;">/</span></span></span><span class="mi" id="MathJax-Span-39" style="font-family: MathJax_Math-italic;">b</span><span class="mi" id="MathJax-Span-40" style="font-family: MathJax_Math-italic;">i</span><span class="mi" id="MathJax-Span-41" style="font-family: MathJax_Math-italic;">n</span><span class="mo" id="MathJax-Span-42" style="font-family: MathJax_Main; padding-left: 0.269em;">:</span></span><span style="display: inline-block; width: 0px; height: 2.723em;"></span></span></span><span style="border-left-width: 0.003em; border-left-style: solid; display: inline-block; overflow: hidden; width: 0px; height: 1.403em; vertical-align: -0.397em;"></span></span></nobr></span><script type="math/tex" id="MathJax-Element-2">{HADOOP_HOME}/bin:</script>{HADOOP_HOME}/sbin:<span class="MathJax_Preview"></span><span class="MathJax" id="MathJax-Element-3-Frame" role="textbox" aria-readonly="true"><nobr><span class="math" id="MathJax-Span-43" style="width: 11.736em; display: inline-block;"><span style="display: inline-block; position: relative; width: 9.389em; height: 0px; font-size: 125%;"><span style="position: absolute; clip: rect(1.816em 1000em 3.149em -0.424em); top: -2.717em; left: 0.003em;"><span class="mrow" id="MathJax-Span-44"><span class="texatom" id="MathJax-Span-45"><span class="mrow" id="MathJax-Span-46"><span class="mi" id="MathJax-Span-47" style="font-family: MathJax_Math-italic;">S<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span class="mi" id="MathJax-Span-48" style="font-family: MathJax_Math-italic;">C<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span class="mi" id="MathJax-Span-49" style="font-family: MathJax_Math-italic;">A</span><span class="mi" id="MathJax-Span-50" style="font-family: MathJax_Math-italic;">L</span><span class="msubsup" id="MathJax-Span-51"><span style="display: inline-block; position: relative; width: 1.496em; height: 0px;"><span style="position: absolute; clip: rect(1.709em 1000em 2.723em -0.424em); top: -2.557em; left: 0.003em;"><span class="mi" id="MathJax-Span-52" style="font-family: MathJax_Math-italic;">A</span><span style="display: inline-block; width: 0px; height: 2.563em;"></span></span><span style="position: absolute; top: -2.291em; left: 0.803em;"><span class="mi" id="MathJax-Span-53" style="font-size: 70.7%; font-family: MathJax_Math-italic;">H<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span style="display: inline-block; width: 0px; height: 2.456em;"></span></span></span></span><span class="mi" id="MathJax-Span-54" style="font-family: MathJax_Math-italic;">O</span><span class="mi" id="MathJax-Span-55" style="font-family: MathJax_Math-italic;">M<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.109em;"></span></span><span class="mi" id="MathJax-Span-56" style="font-family: MathJax_Math-italic;">E<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.003em;"></span></span></span></span><span class="texatom" id="MathJax-Span-57"><span class="mrow" id="MathJax-Span-58"><span class="mo" id="MathJax-Span-59" style="font-family: MathJax_Main;">/</span></span></span><span class="mi" id="MathJax-Span-60" style="font-family: MathJax_Math-italic;">b</span><span class="mi" id="MathJax-Span-61" style="font-family: MathJax_Math-italic;">i</span><span class="mi" id="MathJax-Span-62" style="font-family: MathJax_Math-italic;">n</span><span class="mo" id="MathJax-Span-63" style="font-family: MathJax_Main; padding-left: 0.269em;">:</span></span><span style="display: inline-block; width: 0px; height: 2.723em;"></span></span></span><span style="border-left-width: 0.003em; border-left-style: solid; display: inline-block; overflow: hidden; width: 0px; height: 1.403em; vertical-align: -0.397em;"></span></span></nobr></span><script type="math/tex" id="MathJax-Element-3">{SCALA_HOME}/bin:</script>{SPARK_HOME}/bin:<span class="MathJax_Preview"></span><span class="MathJax" id="MathJax-Element-4-Frame" role="textbox" aria-readonly="true"><nobr><span class="math" id="MathJax-Span-64" style="width: 12.536em; display: inline-block;"><span style="display: inline-block; position: relative; width: 10.029em; height: 0px; font-size: 125%;"><span style="position: absolute; clip: rect(1.816em 1000em 3.149em -0.424em); top: -2.717em; left: 0.003em;"><span class="mrow" id="MathJax-Span-65"><span class="texatom" id="MathJax-Span-66"><span class="mrow" id="MathJax-Span-67"><span class="mi" id="MathJax-Span-68" style="font-family: MathJax_Math-italic;">S<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span class="mi" id="MathJax-Span-69" style="font-family: MathJax_Math-italic;">P<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.109em;"></span></span><span class="mi" id="MathJax-Span-70" style="font-family: MathJax_Math-italic;">A</span><span class="mi" id="MathJax-Span-71" style="font-family: MathJax_Math-italic;">R</span><span class="msubsup" id="MathJax-Span-72"><span style="display: inline-block; position: relative; width: 1.603em; height: 0px;"><span style="position: absolute; clip: rect(1.709em 1000em 2.723em -0.424em); top: -2.557em; left: 0.003em;"><span class="mi" id="MathJax-Span-73" style="font-family: MathJax_Math-italic;">K<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span style="display: inline-block; width: 0px; height: 2.563em;"></span></span><span style="position: absolute; top: -2.291em; left: 0.856em;"><span class="mi" id="MathJax-Span-74" style="font-size: 70.7%; font-family: MathJax_Math-italic;">H<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span style="display: inline-block; width: 0px; height: 2.456em;"></span></span></span></span><span class="mi" id="MathJax-Span-75" style="font-family: MathJax_Math-italic;">O</span><span class="mi" id="MathJax-Span-76" style="font-family: MathJax_Math-italic;">M<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.109em;"></span></span><span class="mi" id="MathJax-Span-77" style="font-family: MathJax_Math-italic;">E<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.003em;"></span></span></span></span><span class="texatom" id="MathJax-Span-78"><span class="mrow" id="MathJax-Span-79"><span class="mo" id="MathJax-Span-80" style="font-family: MathJax_Main;">/</span></span></span><span class="mi" id="MathJax-Span-81" style="font-family: MathJax_Math-italic;">s</span><span class="mi" id="MathJax-Span-82" style="font-family: MathJax_Math-italic;">b</span><span class="mi" id="MathJax-Span-83" style="font-family: MathJax_Math-italic;">i</span><span class="mi" id="MathJax-Span-84" style="font-family: MathJax_Math-italic;">n</span><span class="mo" id="MathJax-Span-85" style="font-family: MathJax_Main; padding-left: 0.269em;">:</span></span><span style="display: inline-block; width: 0px; height: 2.723em;"></span></span></span><span style="border-left-width: 0.003em; border-left-style: solid; display: inline-block; overflow: hidden; width: 0px; height: 1.403em; vertical-align: -0.397em;"></span></span></nobr></span><script type="math/tex" id="MathJax-Element-4">{SPARK_HOME}/sbin:</script>{HIVE_HOME}/bin:<span class="MathJax_Preview"></span><span class="MathJax" id="MathJax-Element-5-Frame" role="textbox" aria-readonly="true"><nobr><span class="math" id="MathJax-Span-86" style="width: 12.269em; display: inline-block;"><span style="display: inline-block; position: relative; width: 9.816em; height: 0px; font-size: 125%;"><span style="position: absolute; clip: rect(1.816em 1000em 3.149em -0.424em); top: -2.717em; left: 0.003em;"><span class="mrow" id="MathJax-Span-87"><span class="texatom" id="MathJax-Span-88"><span class="mrow" id="MathJax-Span-89"><span class="mi" id="MathJax-Span-90" style="font-family: MathJax_Math-italic;">K<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span class="mi" id="MathJax-Span-91" style="font-family: MathJax_Math-italic;">A</span><span class="mi" id="MathJax-Span-92" style="font-family: MathJax_Math-italic;">F<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.109em;"></span></span><span class="mi" id="MathJax-Span-93" style="font-family: MathJax_Math-italic;">K<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span class="msubsup" id="MathJax-Span-94"><span style="display: inline-block; position: relative; width: 1.496em; height: 0px;"><span style="position: absolute; clip: rect(1.709em 1000em 2.723em -0.424em); top: -2.557em; left: 0.003em;"><span class="mi" id="MathJax-Span-95" style="font-family: MathJax_Math-italic;">A</span><span style="display: inline-block; width: 0px; height: 2.563em;"></span></span><span style="position: absolute; top: -2.291em; left: 0.803em;"><span class="mi" id="MathJax-Span-96" style="font-size: 70.7%; font-family: MathJax_Math-italic;">H<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.056em;"></span></span><span style="display: inline-block; width: 0px; height: 2.456em;"></span></span></span></span><span class="mi" id="MathJax-Span-97" style="font-family: MathJax_Math-italic;">O</span><span class="mi" id="MathJax-Span-98" style="font-family: MathJax_Math-italic;">M<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.109em;"></span></span><span class="mi" id="MathJax-Span-99" style="font-family: MathJax_Math-italic;">E<span style="display: inline-block; overflow: hidden; height: 1px; width: 0.003em;"></span></span></span></span><span class="texatom" id="MathJax-Span-100"><span class="mrow" id="MathJax-Span-101"><span class="mo" id="MathJax-Span-102" style="font-family: MathJax_Main;">/</span></span></span><span class="mi" id="MathJax-Span-103" style="font-family: MathJax_Math-italic;">b</span><span class="mi" id="MathJax-Span-104" style="font-family: MathJax_Math-italic;">i</span><span class="mi" id="MathJax-Span-105" style="font-family: MathJax_Math-italic;">n</span><span class="mo" id="MathJax-Span-106" style="font-family: MathJax_Main; padding-left: 0.269em;">:</span></span><span style="display: inline-block; width: 0px; height: 2.723em;"></span></span></span><span style="border-left-width: 0.003em; border-left-style: solid; display: inline-block; overflow: hidden; width: 0px; height: 1.403em; vertical-align: -0.397em;"></span></span></nobr></span><script type="math/tex" id="MathJax-Element-5">{KAFKA_HOME}/bin:</script>PATH <br>
+-   使配置的环境变量立即生效：source /root/.bashrc <br>
+b.  打开server.properties <br>
+-   cd $ZOOKEEPER_HOME/config <br>
+-   vi server.properties <br>
+c.  配置server.properties <br>
+broker.id=0 <br>
+port=9092 <br>
+zookeeper.connect=master:2181,slave1:2181,slave2:2181 <br>
+4)  同步master的安装和配置到slave1和slave2，在master服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs ruby">cd /root
+scp ./.bashrc root<span class="hljs-variable">@slave1</span><span class="hljs-symbol">:/root</span>
+scp ./.bashrc root<span class="hljs-variable">@slave2</span><span class="hljs-symbol">:/root</span>
+cd /usr/local
+scp -r ./kafka_2.<span class="hljs-number">10</span>-<span class="hljs-number">0</span>.<span class="hljs-number">9.0</span>.<span class="hljs-number">1</span> root<span class="hljs-variable">@slave1</span><span class="hljs-symbol">:/usr/local</span>
+scp -r ./kafka_2.<span class="hljs-number">10</span>-<span class="hljs-number">0</span>.<span class="hljs-number">9.0</span>.<span class="hljs-number">1</span> root<span class="hljs-variable">@slave2</span><span class="hljs-symbol">:/usr/local</span></code></pre>
+
+<p>在slave1服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash">vi <span class="hljs-variable">$KAFKA_HOME</span>/config/server.properties</code></pre>
+
+<p>修改broker.id=1。 <br>
+在slave2服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash">vi <span class="hljs-variable">$KAFKA_HOME</span>/config/server.properties</code></pre>
+
+<p>修改broker.id=2。 <br>
+5)  启动Kafka服务 <br>
+在master服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs lasso">cd <span class="hljs-variable">$KAFKA_HOME</span>/bin
+kafka<span class="hljs-attribute">-server</span><span class="hljs-attribute">-start</span><span class="hljs-built_in">.</span>sh <span class="hljs-built_in">..</span>/config/server<span class="hljs-built_in">.</span>properties <span class="hljs-subst">&amp;</span></code></pre>
+
+<p>在slave1服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash"><span class="hljs-built_in">source</span> /root/.bashrc
+<span class="hljs-built_in">cd</span> <span class="hljs-variable">$KAFKA_HOME</span>/bin
+kafka-server-start.sh ../config/server.properties &amp;</code></pre>
+
+<p>在slave2服务器上运行下面的命令</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs bash"><span class="hljs-built_in">source</span> /root/.bashrc
+<span class="hljs-built_in">cd</span> <span class="hljs-variable">$KAFKA_HOME</span>/bin
+kafka-server-start.sh ../config/server.properties &amp;</code></pre>
+
+<p>6)  验证Kafka是否安装和启动成功 <br>
+在任意服务器上运行命令创建Topic“HelloKafka”：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs brainfuck"><span class="hljs-comment">kafka</span><span class="hljs-literal">-</span><span class="hljs-comment">topics</span><span class="hljs-string">.</span><span class="hljs-comment">sh</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">create</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">zookeeper</span> <span class="hljs-comment">master:2181</span><span class="hljs-string">,</span><span class="hljs-comment">slave1:2181</span><span class="hljs-string">,</span><span class="hljs-comment">slave2:2181</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">replication</span><span class="hljs-literal">-</span><span class="hljs-comment">factor</span> <span class="hljs-comment">3</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">partitions</span> <span class="hljs-comment">1</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">topic</span> <span class="hljs-comment">HelloKafka</span></code></pre>
+
+<p>在任意服务器上运行命令为创建的Topic“HelloKafka”生产一些消息：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs css"><span class="hljs-tag">kafka-console-producer</span><span class="hljs-class">.sh</span> <span class="hljs-tag">--broker-list</span> <span class="hljs-tag">master</span><span class="hljs-pseudo">:9092</span>,<span class="hljs-tag">slave1</span><span class="hljs-pseudo">:9092</span>,<span class="hljs-tag">slave2</span><span class="hljs-pseudo">:9092</span> <span class="hljs-tag">--topic</span> <span class="hljs-tag">HelloKafka</span></code></pre>
+
+<p>输入下面的消息内容：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs cs">This <span class="hljs-keyword">is</span> DT_Spark!
+I’m Rocky!
+Life <span class="hljs-keyword">is</span> <span class="hljs-keyword">short</span>, you need Spark!</code></pre>
+
+<p>在任意服务器上运行命令从指定的Topic“HelloKafka”上消费（拉取）消息：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs brainfuck"><span class="hljs-comment">kafka</span><span class="hljs-literal">-</span><span class="hljs-comment">console</span><span class="hljs-literal">-</span><span class="hljs-comment">consumer</span><span class="hljs-string">.</span><span class="hljs-comment">sh</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">zookeeper</span> <span class="hljs-comment">master:2181</span><span class="hljs-string">,</span><span class="hljs-comment">slave1:2181</span><span class="hljs-string">,</span><span class="hljs-comment">slave2:2181</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">from</span><span class="hljs-literal">-</span><span class="hljs-comment">beginning</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">topic</span> <span class="hljs-comment">HelloKafka</span></code></pre>
+
+<p>过一会儿，你会看到打印的消息内容：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs cs">This <span class="hljs-keyword">is</span> DT_Spark!
+I’m Rocky!
+Life <span class="hljs-keyword">is</span> <span class="hljs-keyword">short</span>, you need Spark!</code></pre>
+
+<p>在任意服务器上运行命令查看所有的Topic名字：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs css"><span class="hljs-tag">kafka-topics</span><span class="hljs-class">.sh</span> <span class="hljs-tag">--list</span> <span class="hljs-tag">--zookeeper</span> <span class="hljs-tag">master</span><span class="hljs-pseudo">:2181</span>,<span class="hljs-tag">slave1</span><span class="hljs-pseudo">:2181</span>,<span class="hljs-tag">slave2</span><span class="hljs-pseudo">:2181</span></code></pre>
+
+<p>在任意服务器上运行命令查看指定Topic的概况：</p>
+
+
+
+<pre class="prettyprint"><code class=" hljs brainfuck"><span class="hljs-comment">kafka</span><span class="hljs-literal">-</span><span class="hljs-comment">topics</span><span class="hljs-string">.</span><span class="hljs-comment">sh</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">describe</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">zookeepermaster:2181</span><span class="hljs-string">,</span><span class="hljs-comment">slave1:2181</span><span class="hljs-string">,</span><span class="hljs-comment">slave2:2181</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">topic</span> <span class="hljs-comment">HelloKafka</span></code></pre>
+
+<p>至此，代表Kafka已经安装和配置成功！</p>
+
+<p><strong>课程笔记来源:</strong> DT大数据梦工厂IMF传奇行动课程学员整理。YY直播永久课堂频道68917580每晚8点准时开课! <br>
+<strong>主编辑</strong>：王家林 <br>
+<strong>编写人</strong>：周飞</p>
